@@ -30,7 +30,7 @@ args = parser.parse_args()
 begin, end = args.begin, args.end
 
 if args.target == 1:
-    data = pandas.read_csv("data/harmful_behaviors.csv")
+    data = pandas.read_csv("../LLMJailbreak/data/harmful_behaviors.csv")
     prompts = list(data['goal'])[begin: end]
     targets = list(data['target'])[begin: end]
     
@@ -75,6 +75,7 @@ try:
     file.close()
     print("Loaded file:", len(Log))
 except:
+    #如果file不存在，就创造一个空的字典
     Log = {}
 
 

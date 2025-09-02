@@ -13,6 +13,14 @@ class AutoRegressor():
         
         self.name = name
         self.tokenizer = AutoTokenizer.from_pretrained(self.name)
+
+        self.model = AutoModelForCausalLM.from_pretrained(
+            "../LLMJailbreak/models/Mistral-7B-Instruct-v0.3",
+            device_map=used_device,
+            torch_dtype=precision,
+            low_cpu_mem_usage=True,
+        ).eval()
+
         self.model = AutoModelForCausalLM.from_pretrained(self.name, device_map="auto", torch_dtype=torch.float16, use_cache=False, low_cpu_mem_usage=True)
         self.multimodel = None
         
@@ -103,7 +111,7 @@ class AutoRegressor():
             scores: corresponding attack objectives achieved for each `prompt_tokens` element
         """
         
-        # intiialize model settings
+        # intiialize model settings 深度复制，然后接下来重新赋值，以保留model.generation_config在函数结束时值不变
         config = copy.deepcopy(self.model.generation_config)
         self.model.generation_config.temperature = temperature
         self.model.generation_config.top_p = top_p

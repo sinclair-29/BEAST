@@ -15,8 +15,9 @@ class AutoRegressor():
         self.tokenizer = AutoTokenizer.from_pretrained("../LLMJailbreak/models/Mistral-7B-Instruct-v0.3")
         self.model = AutoModelForCausalLM.from_pretrained(
             "../LLMJailbreak/models/Mistral-7B-Instruct-v0.3",
-            device_map=used_device,
-            torch_dtype=precision,
+            device_map="auto",
+            orch_dtype=torch.float16,
+            use_cache=False,
             low_cpu_mem_usage=True,
         ).eval()
 

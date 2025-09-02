@@ -16,7 +16,7 @@ class AutoRegressor():
         self.model = AutoModelForCausalLM.from_pretrained(
             "../LLMJailbreak/models/Mistral-7B-Instruct-v0.3",
             device_map="auto",
-            orch_dtype=torch.float16,
+            torch_dtype=torch.float16,
             use_cache=False,
             low_cpu_mem_usage=True,
         ).eval()

@@ -12,8 +12,7 @@ class AutoRegressor():
     def __init__(self, name="lmsys/vicuna-7b-v1.5", budget=None):
         
         self.name = name
-        self.tokenizer = AutoTokenizer.from_pretrained(self.name)
-
+        self.tokenizer = AutoTokenizer.from_pretrained("../LLMJailbreak/models/Mistral-7B-Instruct-v0.3")
         self.model = AutoModelForCausalLM.from_pretrained(
             "../LLMJailbreak/models/Mistral-7B-Instruct-v0.3",
             device_map=used_device,
@@ -21,7 +20,7 @@ class AutoRegressor():
             low_cpu_mem_usage=True,
         ).eval()
 
-        self.model = AutoModelForCausalLM.from_pretrained(self.name, device_map="auto", torch_dtype=torch.float16, use_cache=False, low_cpu_mem_usage=True)
+        #self.model = AutoModelForCausalLM.from_pretrained(self.name, device_map="auto", torch_dtype=torch.float16, use_cache=False, low_cpu_mem_usage=True)
         self.multimodel = None
         
         # keep do_sample = False when temperature is None

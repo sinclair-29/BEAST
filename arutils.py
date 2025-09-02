@@ -84,7 +84,7 @@ class AutoRegressor():
     
     @torch.no_grad()
     def self_attack_chat_batch(self, prompts, k1=15, k2=15, lookahead_length=10, n_trials=1, top_p=None, top_k=None, temperature=None,\
-        new_gen_length=10, target=None, verbose=1, interactive=0, ngram=1, multi_model_list=None):
+        new_gen_length=10, target=None, verbose=1, interactive=1, ngram=1, multi_model_list=None):
         
         """
         Self attack to generate adversarial input prompts, where the first few tokens are given `prompt` and the rest
@@ -122,9 +122,15 @@ class AutoRegressor():
             self.model.generation_config.do_sample = False
         
         system = ("{}{}{}".format(*self.chat_format.system)) if (self.chat_format.system[1] != "") else ""
+
         begin_inst_token = self.tokenizer.encode(self.chat_format.sep[0] + system + self.chat_format.user[0], add_special_tokens=False)
         end_inst_token = self.tokenizer.encode(self.chat_format.user[1] + self.chat_format.assistant[0], add_special_tokens=False)
         
+        #print(f"begin_inst_token: {begin_inst_token}")
+        #print(f"end_inst_token: {end_inst_token}")
+        #print(f"prompts: {prompts}")
+        #exit()
+
         max_bs, bs = self.max_bs, len(prompts) 
         prompt_tokens = []
         
@@ -135,18 +141,34 @@ class AutoRegressor():
         
         # assume only 1 round of user-assistant dialog
         # tokenizer prompts
-        for prompt in prompts: 
+        for prompt in prompts:
+            print(f"prompt: {prompt}")
             prompt_tokens.append(self.tokenizer.encode(self.chat_format.sep[0] + system + self.chat_format.user[0] + prompt.strip(" "), add_special_tokens=False))
+        
+        #print(f"prompt_tokens: {self.tokenizer.decode(prompt_tokens[0])}")
+        #exit()
 
         logits, prompt_length = [], len(prompt_tokens[0])
+        
+        #print(f"max_bs {max_bs}")
+        #print(f"prompt_tokens: {len(prompt_tokens)}")
+        #exit()
+
         for b in range(0, len(prompt_tokens), max_bs):
             logits.append(self.generate_n_tokens_batch(prompt_tokens[b: b+max_bs], max_gen_len=1, temperature=temperature, top_p=top_p, top_k=top_k)[0])
         logits = torch.cat(logits, dim=0)
+        #print(f"logits: {len(logits)}")
 
+        #exit()
         # `curr_tokens` maintains a list[list[list]], (# batch_size) x (# beam candidates) x (# tokens) 
         curr_tokens = self.sample(torch.softmax(logits[:, 0], dim=-1), top_p, return_tokens=k1)[:, : k1]
+        print(f"curr_tokens: {curr_tokens}")
         curr_tokens = [[i2 + [j.cpu().numpy().tolist()] for j in i1] for (i1, i2) in zip(curr_tokens, prompt_tokens)]
-        
+        print(f"curr_tokens: {curr_tokens}")
+        length = len(curr_tokens[0])
+        seq_length = [len(seq) for seq in curr_tokens[0]]
+        print(f"curr_tokens shapes: {length}, {seq_length}")
+        #exit()
         start_time = time.time()
         best_scores, best_prompts = (np.zeros(np.stack(curr_tokens).shape[:2]) - np.inf).tolist(), np.zeros(np.stack(curr_tokens).shape[:2]).tolist()
         
@@ -159,6 +181,7 @@ class AutoRegressor():
             curr_tokens_ = [item for sublist in curr_tokens for item in sublist] # (# batch_size x # beam candidates) x (# tokens) 
 
             next_tokens = []
+            print(f"l: {l}, curr_tokens_:{len(curr_tokens_)}")
             for b in range(0, len(curr_tokens_), max_bs):
                 logits = self.generate_n_tokens_batch(curr_tokens_[b: b+max_bs], max_gen_len=1, temperature=temperature, top_p=top_p, top_k=top_k)[0]
                 next_tokens_ = self.sample(torch.softmax(logits[:, 0], dim=-1) , top_p, return_tokens=k2)[:, : k2]

@@ -93,18 +93,9 @@ def get_generation(ar, x, truncate=None, best=True, min_length=150, max_length=2
         y = ar.model.generate(**y, max_new_tokens =max_length, min_new_tokens =min_length)
         texts = ar.tokenizer.batch_decode(y, skip_special_tokens=True)
 
-        separator = (ar.chat_format.user[1] + ar.chat_format.assistant[0]).strip(" ")
-        print(f"Separator: '{separator}'")  # 看看实际使用的分隔符是什么
-
-        for i, t in enumerate(texts):
-            print(f"Text[{i}]: '{t}'")  # 打印每一条待处理的文本
-            parts = t.split(separator)
-            print(f"Split result: {parts}")  # 打印 split 后的结果
-            if len(parts) < 2:
-                print(f"ERROR: Text[{i}] does not contain separator '{separator}'")
-
-        texts = [t.split((ar.chat_format.user[1] + ar.chat_format.assistant[0]).strip(" "))[1].strip(" ") for t in texts]
-        texts = [t.split(ar.chat_format.user[0].strip(" "))[0].strip(" ") for t in texts]
+        #texts = [t.split((ar.chat_format.user[1] + ar.chat_format.assistant[0]).strip(" "))[1].strip(" ") for t in texts]
+        #texts = [t.split(ar.chat_format.user[0].strip(" "))[0].strip(" ") for t in texts]
+        texts = [t.strip() for t in texts]
         outs.extend(texts)
     print()
         

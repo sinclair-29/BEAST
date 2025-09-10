@@ -269,6 +269,7 @@ class AutoRegressor():
     @torch.no_grad()
     def attack_objective_targeted(self, tokens, target):
         # tokens are "prompt tokens + adv tokens + [/INST]"
+        # tokens : (Tensor), shape = [batch_size, adv_len]
         if not isinstance(tokens, torch.Tensor): tokens = torch.tensor(tokens) 
         if tokens.device.type != 'cuda': tokens = tokens.to(0)
         scores = np.zeros(len(tokens))
@@ -276,7 +277,9 @@ class AutoRegressor():
 
         target = [self.tokenizer.encode(target, return_tensors='pt', add_special_tokens=False).to(0)]
         for i, t in enumerate(target):
-            tokens_ = []
+            batch_size = tokens.shape[0]
+            t_expanded = t.expand(batch_size, -1)
+            tokens_ = torch.cat([tokens, t_expanded], dim=1)
             for ii in range(len(tokens)):
                 tokens_.append(torch.cat([tokens[ii:ii+1], t], dim=1))
             tokens_ = torch.cat(tokens_, dim=0).type(tokens.dtype)

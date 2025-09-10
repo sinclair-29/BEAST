@@ -80,7 +80,7 @@ class AutoRegressor():
         logits = torch.permute(logits, (1, 0, 2))
         
         self.model.generation_config = config # reset model config
-        print(f"logits size: {logits.shape}")
+        #print(f"logits size: {logits.shape}")
         return logits, tokens
     
     @torch.no_grad()
@@ -154,20 +154,23 @@ class AutoRegressor():
             logits.append(self.generate_n_tokens_batch(prompt_tokens[b: b+max_bs], max_gen_len=1, temperature=temperature, top_p=top_p, top_k=top_k)[0])
         #print(f"logits: {logits[0].detach().cpu().numpy().shape}")
         logits = torch.cat(logits, dim=0)
-        print(f"logits: {logits.shape}")
+        #print(f"logits: {logits.shape}")
     
         # `curr_tokens` maintains a list[list[list]], (# batch_size) x (# beam candidates) x (# tokens) 
         curr_tokens = self.sample(torch.softmax(logits[:, 0, :], dim=-1), top_p, return_tokens=k1)[:, : k1]
         #print(f"curr_tokens: {curr_tokens}")
-        #exit()
+        # best_scores: List[List[float]] with shape (1, k1), all -inf
+        # best_prompts: List[List[float]] with shape (1, k1), all 0.0
         curr_tokens = [[i2 + [j.cpu().numpy().tolist()] for j in i1] for (i1, i2) in zip(curr_tokens, prompt_tokens)]
         #print(f"curr_tokens: {curr_tokens}")
     
         
         start_time = time.time()
+        # Best_score: list[list[float]]	 -inf
+        #
         best_scores, best_prompts = (np.zeros(np.stack(curr_tokens).shape[:2]) - np.inf).tolist(), np.zeros(np.stack(curr_tokens).shape[:2]).tolist()
         
-        print(f"best_scores: {best_scores}, best_prompts: {best_prompts}")
+        #print(f"best_scores: {best_scores}, best_prompts: {best_prompts}")
         #exit()
 
         for l in range((new_gen_length-1) * ngram):
@@ -184,7 +187,7 @@ class AutoRegressor():
                 logits = self.generate_n_tokens_batch(curr_tokens_[b: b+max_bs], max_gen_len=1, temperature=temperature, top_p=top_p, top_k=top_k)[0]
                 next_tokens_ = self.sample(torch.softmax(logits[:, 0], dim=-1) , top_p, return_tokens=k2)[:, : k2]
                 next_tokens.extend([[j.cpu().numpy().tolist() for j in i] for i in next_tokens_])
-                print(f"next_tokens_shape: {len(next_tokens)} {next_tokens}")
+                #print(f"next_tokens_shape: {len(next_tokens)} {next_tokens}")
 
             score_prompt_tokens = []
             for i in range(len(curr_tokens_)):
@@ -270,8 +273,7 @@ class AutoRegressor():
         if tokens.device.type != 'cuda': tokens = tokens.to(0)
         scores = np.zeros(len(tokens))
 
-        print(f"tokens {tokens}, target {target}")
-            
+
         target = [self.tokenizer.encode(target, return_tensors='pt', add_special_tokens=False).to(0)]
         for i, t in enumerate(target):
             tokens_ = []

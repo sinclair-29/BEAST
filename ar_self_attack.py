@@ -64,7 +64,7 @@ if args.target == 0:
 if args.multi_model_list != None:
     name[0] += f"_modellist=vic13"
     
-print(name)
+#print(name)
 print(params)
 
 # logger

@@ -90,6 +90,10 @@ def get_generation(ar, x, truncate=None, best=True, min_length=150, max_length=2
     for i in range(0, len(inps), bs):
         print(i, flush=True, end="\r")
         y = ar.tokenizer(inps[i: i+bs], return_tensors='pt', add_special_tokens=False, padding=True).to(0)
+        
+        print("===========")
+        print(inps[i: i+bs])
+
         y = ar.model.generate(**y, max_new_tokens =max_length, min_new_tokens =min_length)
         texts = ar.tokenizer.batch_decode(y, skip_special_tokens=True)
 

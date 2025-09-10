@@ -280,9 +280,6 @@ class AutoRegressor():
             batch_size = tokens.shape[0]
             t_expanded = t.expand(batch_size, -1)
             tokens_ = torch.cat([tokens, t_expanded], dim=1)
-            for ii in range(len(tokens)):
-                tokens_.append(torch.cat([tokens[ii:ii+1], t], dim=1))
-            tokens_ = torch.cat(tokens_, dim=0).type(tokens.dtype)
             if tokens.shape == tokens_.shape:
                 bos = self.tokenizer.encode(self.tokenizer.bos_token, return_tensors='pt', add_special_tokens=False).to(0)
                 bos = torch.cat([bos]*len(tokens_), dim=0)

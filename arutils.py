@@ -208,19 +208,9 @@ class AutoRegressor():
                     
                     # targeted attack for jailbreaks
                     if target is not None:
-                        
-                        def thread1():
-                            return self.attack_objective_targeted(all_tokens, copy.deepcopy(target))
-                        def thread2():
-                            return self.multimodel.get_targetted_scores(all_tokens, copy.deepcopy(target))
-                        
-                        with ThreadPoolExecutor() as executor:
-                            result1 = executor.submit(thread1)
-                            if multi_model_list != None:
-                                result2 = executor.submit(thread2)
-                            scores[b: b+max_bs] += result1.result()
-                            if multi_model_list != None:
-                                scores[b: b+max_bs] += result2.result()
+
+                        result = self.attack_objective_targeted(all_tokens, copy.deepcopy(target))
+                        scores[b: b + max_bs] += result
                         
                     # untargeted attacks for hallucinations
                     else:                  
@@ -279,6 +269,8 @@ class AutoRegressor():
         if not isinstance(tokens, torch.Tensor): tokens = torch.tensor(tokens) 
         if tokens.device.type != 'cuda': tokens = tokens.to(0)
         scores = np.zeros(len(tokens))
+
+        print(f"tokens {tokens}, target {target}")
             
         target = [self.tokenizer.encode(target, return_tensors='pt', add_special_tokens=False).to(0)]
         for i, t in enumerate(target):

@@ -4,3 +4,4 @@ __pycache__/
 # 忽略 data 目录
 data/
 logs/
+.idea/

@@ -208,7 +208,9 @@ class AutoRegressor():
                     for i in range(len(all_tokens)):
                         # concatenate the [/INST] tag before generating LLM output                        
                         all_tokens[i] = all_tokens[i] + end_inst_token
-                    
+                        decoded_token = self.tokenizer.decode(all_tokens[i])
+                        print(decoded_token)
+                    input()
                     # targeted attack for jailbreaks
                     if target is not None:
 
@@ -223,12 +225,14 @@ class AutoRegressor():
                 scores[b: b+max_bs] = scores[b: b+max_bs] / n_trials
                 
             curr_tokens_, scores_ = [], []      
-                        
+            #print(f"bs: {bs}")
+            #exit()            
             for i in range(0, len(scores), len(scores)//bs):
+                print(f"i: {i}")
                 idx = i + np.argsort(scores[i: i+len(scores)//bs])[-k1: ]
                 curr_tokens_.append([score_prompt_tokens[j] for j in idx])
                 scores_.append(scores[idx].tolist())
-                
+            print(f"curr_tokens.shape {curr_tokens}, scores_ {scores_}" ) 
             curr_tokens, scores = copy.deepcopy(curr_tokens_), copy.deepcopy(scores_)
             
             if interactive == 1:
